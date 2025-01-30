@@ -47,11 +47,17 @@ class ChapterCreate(BaseModel):
     class Config:
         from_attributes = True
 
+
 class LessonCreate(BaseModel):
     title: str
     chapter_id: int
     video_url: Optional[str] = None
-    content: Optional[str] = None
+    content: Optional[dict] = None  # Ensure JSON compatibility
+    resource_links: Optional[List[str]] = None  # Accepts list of URLs
+    order_number: int  # Required field to fix the error
+
+    class Config:
+        from_attributes = True
 
 class EnrollmentCreate(BaseModel):
     user_id: int

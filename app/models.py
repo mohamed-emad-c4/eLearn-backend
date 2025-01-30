@@ -55,7 +55,7 @@ class Lesson(Base):
     video_url = Column(String, nullable=True)
     content = Column(JSON, nullable=True)
     resource_links = Column(JSON, nullable=True)
-    order_number = Column(Integer, nullable=False)
+    order_number = Column(Integer, nullable=False, default=1)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     chapter = relationship("Chapter", back_populates="lessons")
