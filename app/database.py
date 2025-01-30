@@ -1,28 +1,19 @@
 import os
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# تحميل متغيرات البيئة
 load_dotenv()
 
-# قراءة `DATABASE_URL`
 DATABASE_URL = os.getenv("DATABASE_URL")
+if DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
 
-if not DATABASE_URL:
-    raise ValueError("❌ خطأ: لم يتم العثور على DATABASE_URL في متغيرات البيئة!")
-
-# إنشاء الاتصال بقاعدة البيانات
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
+engine = create_async_engine(DATABASE_URL, echo=True)
+SessionLocal = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
 Base = declarative_base()
 
-# دالة للحصول على جلسة قاعدة البيانات
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+async def get_db():
+    async with SessionLocal() as session:
+        yield session
