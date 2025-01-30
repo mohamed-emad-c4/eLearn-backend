@@ -40,7 +40,12 @@ class CourseCreate(BaseModel):
         from_attributes = True
 class ChapterCreate(BaseModel):
     title: str
+    content: Optional[str]  # Add content field
+    order_number: Optional[int]  # Add order_number field
     course_id: int
+
+    class Config:
+        from_attributes = True
 
 class LessonCreate(BaseModel):
     title: str

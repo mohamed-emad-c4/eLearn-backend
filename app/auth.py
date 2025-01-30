@@ -58,12 +58,18 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
     return user
 
 
-def get_current_admin(user: models.User = Depends(get_current_user)):
-    if user.role != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
+def get_current_instructor(user: models.User = Depends(get_current_user)):
+    if user.role != "admin" and user.role != "instructor":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors can create chapters"
+        )
     return user
 
-def get_current_instructor(user: models.User = Depends(get_current_user)):
-    if user.role not in ["admin", "instructor"]:
-        raise HTTPException(status_code=403, detail="Instructor access required")
+def get_current_admin(user: models.User = Depends(get_current_user)):
+    if user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can delete chapters"
+        )
     return user
