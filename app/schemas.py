@@ -60,7 +60,6 @@ class LessonCreate(BaseModel):
         from_attributes = True
 
 class EnrollmentCreate(BaseModel):
-    user_id: int
     course_id: int
 
 # Quiz & Question Schemas
