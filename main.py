@@ -10,8 +10,7 @@ from app.database import Base, engine
 from app.routes import progress
 from app.routes import questions
 
-# تشغيل الوظيفة عند بدء التشغيل
-
+# Initialize FastAPI application
 app = FastAPI(
     title="Educational API",
     version="1.0.0",
@@ -19,17 +18,21 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url="/api/redoc"
 )
+
+# Function to initialize database
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
+# Event handler for application startup
 @app.on_event("startup")
 async def on_startup():
     await init_db()
-# إعداد تسجيل الأخطاء (Logging)
+
+# Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-# معالج خطأ عام
+# Global error handler
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logging.error(f"Unexpected error: {exc}")
@@ -37,13 +40,16 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={"message": "An unexpected error occurred. Please try again later."},
     )
+
+# Middleware to log requests
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     logging.info(f"Incoming request: {request.method} {request.url}")
     response = await call_next(request)
     logging.info(f"Response status: {response.status_code}")
     return response
-# تضمين جميع المسارات
+
+# Include API routers
 app.include_router(users.router, prefix="/api")
 app.include_router(courses.router)
 app.include_router(chapters.router)
@@ -52,4 +58,4 @@ app.include_router(enrollments.router)
 app.include_router(quizzes.router)
 app.include_router(problems.router)
 app.include_router(progress.router)
-app.include_router(questions.router) 
+app.include_router(questions.router)

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>لوحة تحكم المسؤول</h1>
+    <div class="container">
+        <h2>إدارة الدورات</h2>
+        <button onclick="getCourses()">عرض جميع الدورات</button>
+        <ul id="courses-list"></ul>
+    </div>
+
+    <script>
+        async function getCourses() {
+            const response = await fetch("http://127.0.0.1:8000/api/courses/");
+            const courses = await response.json();
+            const list = document.getElementById("courses-list");
+            list.innerHTML = "";
+            courses.forEach(course => {
+                let li = document.createElement("li");
+                li.textContent = `📘 ${course.name} - ${course.level}`;
+                list.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>
