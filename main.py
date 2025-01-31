@@ -8,7 +8,7 @@ import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import Base, engine
 from app.routes import progress
-
+from app.routes import questions
 
 # تشغيل الوظيفة عند بدء التشغيل
 
@@ -52,3 +52,4 @@ app.include_router(enrollments.router)
 app.include_router(quizzes.router)
 app.include_router(problems.router)
 app.include_router(progress.router)
+app.include_router(questions.router) 

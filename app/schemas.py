@@ -63,23 +63,36 @@ class EnrollmentCreate(BaseModel):
     course_id: int
 
 # Quiz & Question Schemas
-class QuizCreate(BaseModel):
-    title: str
-    description: Optional[str] = None
-    total_marks: int
-    lesson_id: int
-
-    class Config:
-        from_attributes = True
-
 class QuestionCreate(BaseModel):
-    quiz_id: int
     question_text: str
     options: List[str]
     correct_answer: int
 
     class Config:
         from_attributes = True
+
+# Quiz Schema (Now Includes MCQs)
+class QuizCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    total_marks: int
+    lesson_id: int
+    questions: List[QuestionCreate] 
+    class Config:
+        from_attributes = True
+
+# ✅ Modify Quiz Schema to Include Questions in Response
+class QuizResponse(BaseModel):
+    id: int
+    title: str
+    description: Optional[str] = None
+    total_marks: int
+    lesson_id: int
+    questions: List[QuestionCreate]  # ✅ Ensure questions are included
+
+    class Config:
+        from_attributes = True
+
 
 # Problem Schemas
 class ProblemCreate(BaseModel):

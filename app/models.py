@@ -78,6 +78,9 @@ class Quiz(Base):
     total_marks = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    # ✅ Add Relationship to Questions
+    questions = relationship("Question", backref="quiz", lazy="joined")
+
 class Question(Base):
     __tablename__ = "questions"
     id = Column(Integer, primary_key=True, index=True)
