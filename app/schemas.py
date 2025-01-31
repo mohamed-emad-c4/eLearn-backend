@@ -149,3 +149,26 @@ class CourseProgress(BaseModel):
 
     class Config:
         from_attributes = True
+class CourseResponse(BaseModel):
+    id: int
+    name: str
+    level: str
+    description: Optional[str]
+    category: Optional[str]
+    language: Optional[str]
+    image_url: Optional[str]
+    status: Optional[str]
+
+    class Config:
+        orm_mode = True
+
+
+
+
+
+
+
+
+
+
+

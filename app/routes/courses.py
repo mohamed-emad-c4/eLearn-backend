@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -7,9 +8,29 @@ from sqlalchemy.future import select
 
 router = APIRouter(prefix="/api/courses", tags=["Courses"])
 
-@router.get("/", response_model=list[schemas.CourseCreate])
-async def get_courses(db: AsyncSession = Depends(get_db), skip: int = 0, limit: int = 10):
-    result = await db.execute(select(models.Course).offset(skip).limit(limit))
+@router.get("/{id}", response_model=dict)  # ✅ Ensure response is a dict
+async def get_course(id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(models.Course).filter(models.Course.id == id))
+    course = result.scalars().first()
+
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    
+    # ✅ Return a dictionary instead of an object
+    return {
+        "id": course.id,
+        "name": course.name,
+        "level": course.level,
+        "description": course.description,
+        "category": course.category,
+        "language": course.language,
+        "image_url": course.image_url,
+        "status": course.status
+    }
+
+@router.get("/", response_model=list[schemas.CourseResponse])
+async def get_all_courses(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(models.Course))
     return result.scalars().all()
 
 @router.post("/", response_model=schemas.CourseCreate)
@@ -48,3 +69,29 @@ async def delete_course(id: int, db: AsyncSession = Depends(get_db), admin=Depen
     await db.delete(course)
     await db.commit()
     return {"message": "Course deleted successfully"}
+@router.put("/{id}", response_model=schemas.CourseResponse)
+async def update_course(
+    id: int, 
+    course_update: schemas.CourseCreate, 
+    db: AsyncSession = Depends(get_db), 
+    instructor=Depends(auth.get_current_instructor)
+):
+    result = await db.execute(select(models.Course).filter(models.Course.id == id))
+    course = result.scalars().first()
+
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+
+    # ✅ Update course fields
+    course.name = course_update.name
+    course.level = course_update.level
+    course.description = course_update.description
+    course.category = course_update.category
+    course.language = course_update.language
+    course.image_url = course_update.image_url
+    course.status = course_update.status
+
+    await db.commit()
+    await db.refresh(course)
+
+    return course
