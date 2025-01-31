@@ -1,31 +1,106 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Admin Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 50px; }
+        input, button { padding: 10px; margin: 10px; width: 80%; max-width: 300px; }
+        ul { list-style-type: none; padding: 0; }
+        li { background: #f4f4f4; margin: 5px; padding: 10px; }
+    </style>
 </head>
 <body>
-    <h1>لوحة تحكم المسؤول</h1>
-    <div class="container">
-        <h2>إدارة الدورات</h2>
-        <button onclick="getCourses()">عرض جميع الدورات</button>
-        <ul id="courses-list"></ul>
-    </div>
+
+    <h2>Admin Dashboard</h2>
+    
+    <button onclick="logout()">🚪 Log Out</button>
+
+    <h3>📚 Available Courses</h3>
+    <ul id="courses-list"></ul>
+
+    <h3>➕ Add a New Course</h3>
+    <input type="text" id="course-name" placeholder="📘 Course Name">
+    <input type="text" id="course-level" placeholder="🎓 Level">
+    <button onclick="addCourse()">📥 Add</button>
+
+    <h3>🗑️ Delete a Course</h3>
+    <input type="number" id="course-id-delete" placeholder="🔢 Course ID">
+    <button onclick="deleteCourse()">🗑️ Delete</button>
 
     <script>
+        const token = localStorage.getItem("token");
+        if (!token) {
+            window.location.href = "/login";  // ✅ Redirect to login if no token
+        }
+
         async function getCourses() {
-            const response = await fetch("http://127.0.0.1:8000/api/courses/");
+            const response = await fetch("http://127.0.0.1:8000/api/courses/", {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
             const courses = await response.json();
             const list = document.getElementById("courses-list");
             list.innerHTML = "";
             courses.forEach(course => {
                 let li = document.createElement("li");
-                li.textContent = `📘 ${course.name} - ${course.level}`;
+                li.textContent = `📘 ${course.id} - ${course.name} (${course.level})`;
                 list.appendChild(li);
             });
         }
+
+        async function addCourse() {
+            const name = document.getElementById("course-name").value;
+            const level = document.getElementById("course-level").value;
+
+            const response = await fetch("http://127.0.0.1:8000/api/courses/", {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    name: name, 
+                    level: level, 
+                    description: "", 
+                    category: "", 
+                    language: "English", 
+                    image_url: "", 
+                    status: "active"
+                })
+            });
+
+            if (response.ok) {
+                alert("✅ Course added successfully!");
+                getCourses();
+            } else {
+                alert("❌ Failed to add course, check permissions!");
+            }
+        }
+
+        async function deleteCourse() {
+            const courseId = document.getElementById("course-id-delete").value;
+
+            const response = await fetch(`http://127.0.0.1:8000/api/courses/${courseId}`, {
+                method: "DELETE",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                alert("✅ Course deleted successfully!");
+                getCourses();
+            } else {
+                alert("❌ Failed to delete course, check permissions!");
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("token");
+            window.location.href = "/login";
+        }
+
+        getCourses();
     </script>
+
 </body>
 </html>

@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 import logging
 from app.database import Base, engine
 from app.routes import users, courses, chapters, lessons, enrollments, quizzes, problems
+from fastapi.middleware.cors import CORSMiddleware
 
 import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,6 +30,14 @@ async def init_db():
 async def on_startup():
     await init_db()
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://127.0.0.1:5000"],  # ✅ Allow the Flask frontend
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
