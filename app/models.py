@@ -69,26 +69,7 @@ class Enrollment(Base):
     progress = Column(Float, default=0.0)
     completed = Column(Boolean, default=False)
 
-class Quiz(Base):
-    __tablename__ = "quizzes"
-    id = Column(Integer, primary_key=True, index=True)
-    lesson_id = Column(Integer, ForeignKey("lessons.id"))
-    title = Column(String, nullable=False)
-    description = Column(Text, nullable=True)
-    total_marks = Column(Integer, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
 
-    # ✅ Add Relationship to Questions
-    questions = relationship("Question", backref="quiz", lazy="joined")
-
-class Question(Base):
-    __tablename__ = "questions"
-    id = Column(Integer, primary_key=True, index=True)
-    quiz_id = Column(Integer, ForeignKey("quizzes.id"))
-    question_text = Column(Text, nullable=False)
-    options = Column(JSON, nullable=False)
-    correct_answer = Column(Integer, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
 
 class Problem(Base):
     __tablename__ = "problems"
@@ -104,12 +85,105 @@ class Problem(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-class UserSubmission(Base):
-    __tablename__ = "user_submissions"
+
+
+class Quiz(Base):
+    __tablename__ = "quizzes"
     id = Column(Integer, primary_key=True, index=True)
-    problem_id = Column(Integer, ForeignKey("problems.id"))
+    lesson_id = Column(Integer, ForeignKey("lessons.id"))
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    total_marks = Column(Integer, nullable=False)
+    time_limit = Column(Integer, nullable=True)  # ⏰ وقت محدد بالدقائق
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    questions = relationship('Question', back_populates='quiz', lazy='selectin')
+
+
+class QuizResult(Base):
+    __tablename__ = "quiz_results"
+    id = Column(Integer, primary_key=True, index=True)
+    quiz_id = Column(Integer, ForeignKey("quizzes.id"))
     user_id = Column(Integer, ForeignKey("users.id"))
-    submission_code = Column(Text, nullable=False)
-    language = Column(String, nullable=False)
-    is_correct = Column(Boolean, nullable=False)
+    score = Column(Integer, nullable=False)
     submitted_at = Column(DateTime, default=datetime.utcnow)
+
+    quiz = relationship("Quiz", backref="results")
+    user = relationship("User", backref="quiz_results")
+
+
+
+class Question(Base):
+    __tablename__ = "questions"
+    id = Column(Integer, primary_key=True, index=True)
+    quiz_id = Column(Integer, ForeignKey("quizzes.id"))
+    question_text = Column(Text, nullable=False)
+    options = Column(JSON, nullable=False)  # Assuming JSON format for options
+    correct_answer = Column(Integer, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    quiz = relationship('Quiz', back_populates='questions')  # ✅ تطابق الاسم مع Quiz
+
+class Option(Base):
+    __tablename__ = "options"
+    id = Column(Integer, primary_key=True, index=True)
+    question_id = Column(Integer, ForeignKey("questions.id"))
+    option_text = Column(Text)
+    is_correct = Column(Boolean)
+
+class QuizAttempt(Base):
+    __tablename__ = "quiz_attempts"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer)
+    quiz_id = Column(Integer, ForeignKey("quizzes.id"))
+    date = Column(DateTime, default=datetime.utcnow)
+    score = Column(Float)
+
+class StudentAnswer(Base):
+    __tablename__ = "student_answers"
+    id = Column(Integer, primary_key=True, index=True)
+    attempt_id = Column(Integer, ForeignKey("quiz_attempts.id"))
+    question_id = Column(Integer, ForeignKey("questions.id"))
+    selected_option_id = Column(Integer, ForeignKey("options.id"))
+    is_correct = Column(Boolean)
+
+class StudentQuiz(Base):
+    __tablename__ = "student_quizzes"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    quiz_id = Column(Integer, ForeignKey("quizzes.id"))
+    score = Column(Integer, nullable=False)              # ✅ Add this line
+    submitted_at = Column(DateTime, default=datetime.utcnow)  # ✅ Add this line
+
+    user = relationship("User")
+    quiz = relationship("Quiz")
+class LessonProgress(Base):
+    __tablename__ = "lesson_progress"  # ✅ Ensure table name matches database
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    lesson_id = Column(Integer, ForeignKey("lessons.id"), nullable=False)
+    chapter_id = Column(Integer, ForeignKey("chapters.id"), nullable=False)
+    course_id = Column(Integer, ForeignKey("courses.id"), nullable=False)
+    progress = Column(Float, default=0.0)
+    is_completed = Column(Boolean, default=False)
+
+    # Relationships
+    user = relationship("User")
+    lesson = relationship("Lesson")
+    chapter = relationship("Chapter")
+    course = relationship("Course")
+
+class ChapterProgress(Base):
+    __tablename__ = "chapter_progress"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    chapter_id = Column(Integer, ForeignKey("chapters.id"), nullable=False)
+    course_id = Column(Integer, ForeignKey("courses.id"), nullable=False)
+    progress = Column(Float, default=0.0)
+    is_completed = Column(Boolean, default=False)
+
+    user = relationship("User")
+    chapter = relationship("Chapter")
+    course = relationship("Course")

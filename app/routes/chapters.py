@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -10,7 +11,19 @@ router = APIRouter(prefix="/api/chapters", tags=["Chapters"])
 async def get_chapters(course_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(models.Chapter).filter(models.Chapter.course_id == course_id))
     return result.scalars().all()
+@router.get("/", response_model=List[schemas.Chapter])
+async def get_all_chapters(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(models.Chapter))
+    return result.scalars().all()
+@router.get("/course/{course_id}", response_model=list[schemas.Chapter])
+async def get_chapters_by_course(course_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(models.Chapter).filter(models.Chapter.course_id == course_id))
+    chapters = result.scalars().all()
 
+    if not chapters:
+        raise HTTPException(status_code=404, detail=f"No chapters found for course ID {course_id}")
+
+    return chapters
 # ✅ Create Chapter (Only Instructors)
 @router.post("/", response_model=schemas.ChapterCreate)
 async def create_chapter(

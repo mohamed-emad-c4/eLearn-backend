@@ -1,12 +1,14 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.database import get_db
 from app import models, schemas, auth
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from typing import Optional
 
 router = APIRouter(prefix="/users", tags=["Users"])
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 @router.post("/register", response_model=schemas.UserResponse)
 async def register_user(user: schemas.UserCreate, db: AsyncSession = Depends(get_db)):
@@ -36,7 +38,12 @@ async def register_user(user: schemas.UserCreate, db: AsyncSession = Depends(get
 @router.get("/me", response_model=schemas.UserResponse)
 async def get_current_user_profile(user: models.User = Depends(auth.get_current_user)):
     return user
-
+@router.get("/verify-token")
+async def verify_token(current_user: models.User = Depends(auth.get_current_user)):
+    """
+    ✅ التحقق من صحة التوكن المرسل في الهيدر Authorization
+    """
+    return {"is_valid": True, "user": current_user.email}
 @router.get("/{id}", response_model=schemas.UserResponse)
 async def get_user(id: int, db: AsyncSession = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     result = await db.execute(select(models.User).filter(models.User.id == id))
