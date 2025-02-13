@@ -371,8 +371,6 @@ class SubmitQuiz(BaseModel):
 class QuizResultResponse(BaseModel):
     quiz_id: int
     user_id: int
-    username: str                # ✅ Added
-    email: str                   # ✅ Added
     score: int
     submitted_at: datetime
 

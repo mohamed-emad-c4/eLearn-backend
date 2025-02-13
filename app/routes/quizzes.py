@@ -100,7 +100,7 @@ async def get_quizzes_by_lesson_id(lesson_id: int, db: AsyncSession = Depends(ge
                     "id": q.id,
                     "question_text": q.question_text,
                     "options": q.options,
-                    "correct_answer": q.correct_answer
+                    # "correct_answer": q.correct_answer
                 }
                 for q in quiz.questions
             ]
@@ -196,11 +196,15 @@ async def get_all_results(
 
 
 
-@router.get("/{quiz_id}/results/{user_id}")
-async def get_quiz_result(quiz_id: int, user_id: int, db: AsyncSession = Depends(get_db)):
+@router.get("/{quiz_id}/results")
+async def get_quiz_result(
+    quiz_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
     result = await db.execute(
         select(models.StudentQuiz)
-        .filter(models.StudentQuiz.quiz_id == quiz_id, models.StudentQuiz.user_id == user_id)
+        .filter(models.StudentQuiz.quiz_id == quiz_id, models.StudentQuiz.user_id == current_user.id)
     )
     quiz_result = result.scalars().first()
 
