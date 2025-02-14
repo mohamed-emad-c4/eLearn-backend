@@ -102,18 +102,6 @@ class QuizResponse(BaseModel):
 
 
 # Problem Schemas
-class ProblemCreate(BaseModel):
-    title: str
-    description: str
-    difficulty: str
-    tags: List[str]
-    sample_input: Optional[str] = None
-    sample_output: Optional[str] = None
-    constraints: Optional[str] = None
-    author_id: int
-
-    class Config:
-        from_attributes = True
 
 # Student Progress Schemas
 class LessonProgressCreate(BaseModel):
@@ -377,7 +365,63 @@ class QuizResultResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class ProblemAttemptCreate(BaseModel):
+    problem_id: int
+    user_solution: str
+    is_correct: bool  
 
+    class Config:
+        from_attributes = True
+
+class ProblemAttemptResponse(BaseModel):
+    id: int
+    problem_id: int
+    user_solution: str
+    is_correct: bool
+    points_earned: int
+    attempt_time: datetime
+
+    class Config:
+        orm_mode = True
+
+class ProblemTagCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class ProblemTagResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str]
+
+    class Config:
+        orm_mode = True
+
+
+class ProblemCreate(BaseModel):
+    title: str
+    description: str
+    level: int  # ✅ مستوى الصعوبة
+    tag_id: int  # ✅ ربط المشكلة بالـ Tag
+
+    constraints: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class ProblemResponse(BaseModel):
+    id: int
+    title: str
+    description: str
+    level: int
+    tag: ProblemTagResponse  # ✅ عرض تفاصيل الـ Tag
+
+    constraints: Optional[str] = None
+
+    class Config:
+        orm_mode = True
 
 
 

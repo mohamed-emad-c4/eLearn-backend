@@ -71,19 +71,6 @@ class Enrollment(Base):
 
 
 
-class Problem(Base):
-    __tablename__ = "problems"
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, nullable=False)
-    description = Column(Text, nullable=False)
-    difficulty = Column(String, nullable=False)
-    tags = Column(JSON, nullable=True)
-    sample_input = Column(Text, nullable=True)
-    sample_output = Column(Text, nullable=True)
-    constraints = Column(Text, nullable=True)
-    author_id = Column(Integer, ForeignKey("users.id"))
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 
@@ -187,3 +174,44 @@ class ChapterProgress(Base):
     user = relationship("User")
     chapter = relationship("Chapter")
     course = relationship("Course")
+
+class ProblemAttempt(Base):
+    __tablename__ = "problem_attempts"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    problem_id = Column(Integer, ForeignKey("problems.id"))
+    user_solution = Column(Text, nullable=False)
+    is_correct = Column(Boolean, default=False)
+    points_earned = Column(Integer, default=0)
+    attempt_time = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User")
+    problem = relationship("Problem")
+
+class ProblemTag(Base):
+    __tablename__ = "problem_tags"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False)
+    description = Column(Text, nullable=True)
+
+    problems = relationship("Problem", back_populates="tag")
+
+class Problem(Base):
+    __tablename__ = "problems"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=False)
+    level = Column(Integer, nullable=False)
+    tag_id = Column(Integer, ForeignKey("problem_tags.id"))
+    constraints = Column(Text, nullable=True)
+    author_id = Column(Integer, ForeignKey("users.id"))
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    tag = relationship("ProblemTag", back_populates="problems", lazy="joined")
+
+
+
+
+
+

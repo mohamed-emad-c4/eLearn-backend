@@ -18,9 +18,11 @@ branch_labels: Union[str, Sequence[str], None] = ${repr(branch_labels)}
 depends_on: Union[str, Sequence[str], None] = ${repr(depends_on)}
 
 
-def upgrade() -> None:
-    ${upgrades if upgrades else "pass"}
+def upgrade():
+    op.drop_column('problems', 'sample_input')
+    op.drop_column('problems', 'sample_output')
 
+def downgrade():
+    op.add_column('problems', sa.Column('sample_input', sa.Text(), nullable=True))
+    op.add_column('problems', sa.Column('sample_output', sa.Text(), nullable=True))
 
-def downgrade() -> None:
-    ${downgrades if downgrades else "pass"}
