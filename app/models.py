@@ -193,6 +193,7 @@ class ProblemTag(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, nullable=False)
     description = Column(Text, nullable=True)
+    url_image = Column(String, nullable=True)
 
     problems = relationship("Problem", back_populates="tag")
 

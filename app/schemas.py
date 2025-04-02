@@ -387,6 +387,7 @@ class ProblemAttemptResponse(BaseModel):
 class ProblemTagCreate(BaseModel):
     name: str
     description: Optional[str] = None
+    url_image: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -395,6 +396,8 @@ class ProblemTagResponse(BaseModel):
     id: int
     name: str
     description: Optional[str]
+    url_image: Optional[str] = None
+
 
     class Config:
         orm_mode = True
