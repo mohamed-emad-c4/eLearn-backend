@@ -28,6 +28,18 @@ async def get_tags(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(models.ProblemTag))
     return result.scalars().all()
 
+@router.get("/tags/{tag_id}/problems", response_model=list[schemas.ProblemResponse])
+async def get_problems_by_tag(tag_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(models.Problem)
+        .options(selectinload(models.Problem.tag))
+        .filter(models.Problem.tag_id == tag_id)
+    )
+    problems = result.scalars().all()
+    if not problems:
+        raise HTTPException(status_code=404, detail="No problems found for the given tag ID.")
+    return problems
+
 # ---------------------------
 # Problem Endpoints
 # ---------------------------
