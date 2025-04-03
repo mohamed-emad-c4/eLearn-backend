@@ -20,7 +20,7 @@ app = FastAPI(
     redoc_url="/api/redoc"
 )
 
-# Function to initialize database
+# Function to initialize the database by creating tables
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -30,7 +30,7 @@ async def init_db():
 async def on_startup():
     await init_db()
 
-
+# Set up CORS middleware to allow specific origins (e.g., for a frontend)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://127.0.0.1:5000"],  # ✅ Allow the Flask frontend
@@ -38,10 +38,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-# Global error handler
+# Global error handler for unexpected exceptions
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logging.error(f"Unexpected error: {exc}")
@@ -50,7 +51,7 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={"message": "An unexpected error occurred. Please try again later."},
     )
 
-# Middleware to log requests
+# Middleware to log incoming requests and responses
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     logging.info(f"Incoming request: {request.method} {request.url}")
@@ -58,7 +59,7 @@ async def log_requests(request: Request, call_next):
     logging.info(f"Response status: {response.status_code}")
     return response
 
-# Include API routers
+# Include API routers for various endpoints
 app.include_router(users.router, prefix="/api")
 app.include_router(courses.router)
 app.include_router(chapters.router)
