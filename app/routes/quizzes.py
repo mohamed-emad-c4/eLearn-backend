@@ -219,9 +219,70 @@ async def get_my_quiz_result(
     }
 
 
+@router.get("/user/results")
+async def get_all_user_quiz_results(
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    query = select(models.StudentQuiz).filter(models.StudentQuiz.user_id == current_user.id)
+    result = await db.execute(query.options(joinedload(models.StudentQuiz.quiz)))
+    quiz_results = result.scalars().all()
 
+    if not quiz_results:
+        raise HTTPException(status_code=404, detail="No quiz results found")
 
+    return [
+        {
+            "quiz_id": result.quiz_id,
+            "quiz_title": result.quiz.title if result.quiz else "Unknown",
+            "score": result.score,
+            "submitted_at": result.submitted_at
+        }
+        for result in quiz_results
+    ]
 
+@router.get("/{quiz_id}/attempts", response_model=List[schemas.QuizAttemptDetail])
+async def get_quiz_attempts_by_id(
+    quiz_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    # Get the quiz to verify it exists and get total marks
+    quiz_result = await db.execute(
+        select(models.Quiz).filter(models.Quiz.id == quiz_id)
+    )
+    quiz = quiz_result.scalars().first()
+    
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+    
+    # Get all attempts by this user for this quiz
+    attempts_result = await db.execute(
+        select(models.StudentQuiz)
+        .filter(
+            models.StudentQuiz.quiz_id == quiz_id,
+            models.StudentQuiz.user_id == current_user.id
+        )
+        .options(joinedload(models.StudentQuiz.quiz))
+        .order_by(models.StudentQuiz.submitted_at.desc())
+    )
+    
+    attempts = attempts_result.scalars().all()
+    
+    if not attempts:
+        raise HTTPException(status_code=404, detail="No attempts found for this quiz")
+    
+    return [
+        {
+            "id": attempt.id,
+            "quiz_id": attempt.quiz_id,
+            "quiz_title": attempt.quiz.title if attempt.quiz else "Unknown",
+            "score": attempt.score,
+            "total_marks": quiz.total_marks,
+            "submitted_at": attempt.submitted_at
+        }
+        for attempt in attempts
+    ]
 
 @router.delete("/{quiz_id}")
 async def delete_quiz(quiz_id: int, db: AsyncSession = Depends(get_db), admin=Depends(auth.get_current_admin)):

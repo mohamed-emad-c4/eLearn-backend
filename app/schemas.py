@@ -365,6 +365,17 @@ class QuizResultResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class QuizAttemptDetail(BaseModel):
+    id: int
+    quiz_id: int
+    quiz_title: str
+    score: int
+    total_marks: int
+    submitted_at: datetime
+
+    class Config:
+        from_attributes = True
+
 class ProblemAttemptCreate(BaseModel):
     problem_id: int
     user_solution: str
