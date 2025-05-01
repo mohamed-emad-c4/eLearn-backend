@@ -196,8 +196,8 @@ async def get_all_results(
 
 
 
-@router.get("/{quiz_id}/results")
-async def get_quiz_result(
+@router.get("/{quiz_id}/my-result")
+async def get_my_quiz_result(
     quiz_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
